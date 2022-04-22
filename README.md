@@ -1,199 +1,164 @@
-# Grow SDK
+# Grow SDK for iOS v1.0.1
 
-This repository contains all the source code to generate the framework to be used both on the application side and on the extension side.
+## Requirements
 
-Inside of the project, we also have the source code for the Mobile Application that demonstrates the usage of the framework.
-
-## Installation
-
-Currently, the SDK can be configured through the [Swift Package Manager](https://swift.org/package-manager/) and manually.
-
-### Requirements
-
-- Requires Xcode 12.5 or above.
-
-### Installing from Xcode
-
-Add a package by selecting `File`→`Swift Packages`→`Add Package Dependency...` in Xcode`s menu bar.
+Requires Xcode 12.5 or above.
 
 ---
 
-Search for the **GrowSDK** using the repo`s URL, then press **Next**.
+## Installing the SDK
 
-```console
+### Install using Swift Package Manager
+
+This is the recommended way to install our SDK, this allows you to easily upgrade versions.
+
+Add the following package dependency url to your project by following the [Apple documentation](https://developer.apple.com/documentation/swift_packages/adding_package_dependencies_to_your_app):
+
+```
 https://github.com/bryjai/grow-sdk-ios-spm
 ```
 
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/spm_step_1.png">
 
----
-
-Set the **Dependency Rule** to `Branch`, then press **Next**.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/spm_step_2.png">
-
----
-
-Select the **GrowSDK** framework and pick your application Target.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/spm_step_3.png">
-
-On your application target you should have the **GrowSDK** on the **Frameworks and Libraries**.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/spm_step_4.png">
-
----
-
-Now select your extension target. And from the **Frameworks and Libraries** add the same **GrowSDK** framework.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/spm_step_5.png">
-
-
-
----
-
-### Installing Manually
+### Install manually
 
 Having access to the **GrowSDK.xcframework**  you can integrate the SDK manually. To do that you just need to drag and drop this file into your Xcode project. There is no specific place you need to drop, but if you have the Frameworks group you can drop there. When prompted with the `Choose options for adding these files` make sure you mark `Copy items if needed` and select your application and extension targets. If you have several application targets and want to use the SDK on them check those targets as well.
 
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/manual_step_1.png">
+![Grow SDK iOS manual install 1](https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/manual_step_1.png)
 
 For the application target make sure `Embed & Sign` is selected for the `GrowSDK.xcframework`.
 
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/manual_step_2.png">
+![Grow SDK iOS manual install 2](https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/manual_step_2.png)
 
 And for the extension make sure `Do Not Embed` is selected for the `GrowSDK.xcframework`.
 
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/manual_step_3.png">
+![Grow SDK iOS manual install 3](https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/manual_step_3.png)
 
 
+### Define capabilities
+
+In order to make the SDK fully functional, it requires the developer to configure capabilities on the **Application** target **and** as well on the **Extension** target. The required capabilities are:
+
+- [Push Notifications](https://developer.apple.com/documentation/usernotifications/registering_your_app_with_apns)
+- [Background Modes](https://developer.apple.com/documentation/xcode/configuring-background-execution-modes). Select options **Background fetch**, **Remote notifications**, and **Background processing**.
+- [App Group](https://developer.apple.com/documentation/xcode/configuring-app-groups)
+
+
+**Caution: the `App Group` name needs to be the same on both Application and Extension targets.**
+
+To learn more about capabilities please check [Apple documentation](https://developer.apple.com/documentation/xcode/capabilities).
 
 ---
 
-## Configuration
+## Initializing the SDK
 
-### Setup the SDK on the Application
+### Initialize on the Application
 
 To configure the SDK, it is required an **API Key** provided by the platform and the [**App Group**](# App Group) configured on your Xcode project. Without the App Group, the SDK will not provide "Push+Landing" campaigns to your application.
 
-If you want to use and share the same **Device Id** on each of your applications you can also provide a [**Keychain Group Name**](# Keychain sharing).
-
 Now open your's AppDelegate class file and import the **GrowSDK** framework.
 
+#### Swift
 ```swift
 import GrowSDK
+```
+
+#### Objective-C
+```objective-c
+#import <GrowSDK/GrowSDK-Swift.h>
 ```
 
 In the same file find the method `application(_:didFinishLaunchingWithOptions:)` and on it create a **Configuration** object from the GrowSDK framework. This object receives a lambda function to provide the possible configurations to be used on the initialization of SDK.
 
 Having this object created you now pass it to the static method `start(_:options:)` of the main class `Grow` of the SDK. This static method also requires the launchOptions.
 
+#### Swift
 ```swift
 func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    let configuration = Grow.Configuration(apiKey: "\(API_Key)", configuration: { configs in
-        configs.appGroup = "\(App_Group_Name)"
-        configs.keychainGroupName = "\(Team_Id).\(Keychain_Group_Name)"
-    })
-    Grow.start(configuration: configuration, options: launchOptions)
-    ...
+    
+    let _configuration = Grow.AppConfigurationBuilder(apiKey: "YOUR_API_KEY", appGroup: "YOUR_APP_GROUP")
+                             .build()
+    Grow.start(configuration: _configuration, options: launchOptions)
+    
+    // ...
+    
     return true
 }
 ```
 
-### Setup the SDK on the Extension
+#### Objective-C
+```objective-c
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    
+    id <AppConfiguration> _configuration = [[[AppConfigurationBuilder alloc]
+                                             initWithApiKey:@"YOUR_API_KEY"
+                                             appGroup:@"YOUR_APP_GROUP"]
+                                            build];
+    
+    [Grow startWithConfiguration:_configuration options:launchOptions];
+    
+    // ...
+    
+    return YES;
+}
+```
+
+
+### Initialize on the Notification Service extension
 
 In order to handle Grow Push campaigns, you must add a **Notification Service** extension to your app. This extension should extends our `GrowNotificationService` class instead of the Apple `UNNotificationServiceExtension`. Then you need to implement the `configuration()` method to setup the Grow SDK on the extension.
 
 Your notification service extension class should look like this.
 
+#### Swift
 ```swift
 import UserNotifications
 import GrowSDK
 
 class NotificationService: UNNotificationServiceExtension {
+    
     var service: GrowNotificationService?
+    
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
-        let configuration = Grow.ExtensionConfiguration(apiKey: "\(API_Key)", extensionConfiguration: { configs in
-            configs.appGroup = "\(App_Group_Name)"
-            configs.keychainGroupName = "\(Team_Id).\(Keychain_Group_Name)"
-        })
-        service = Grow.didReceive(request, forConfiguration: configuration, withContentHandler: contentHandler)
+        
+        let _configuration = Grow.ExtensionConfigurationBuilder(apiKey: "YOUR_API_KEY",
+                                                              appGroup: "YOUR_APP_GROUP",
+                                                   appBundleIdentifier: "YOUR_APP_BUNDLE_IDENTIFIER")
+                                 .build()
+                                 
+        service = Grow.didReceive(request, forConfiguration: _configuration, withContentHandler: contentHandler)
     }
+    
     override func serviceExtensionTimeWillExpire() {
         service?.serviceExtensionTimeWillExpire()
     }
 }
 ```
 
+#### Objective-C
+```objective-c
+#import <GrowSDK/GrowSDK-Swift.h>
+
+@interface NotificationService ()
+@property (nonatomic, strong) GrowNotificationService *service;
+@end
+
+@implementation NotificationService
+    
+- (void)didReceiveNotificationRequest:(UNNotificationRequest *)request withContentHandler:(void (^)(UNNotificationContent * _Nonnull))contentHandler {
+
+    id <ExtensionConfiguration> _configuration = [[[ExtensionConfigurationBuilder alloc]
+                                                   initWithApiKey:@"YOUR_API_KEY"
+                                                   appGroup:@"YOUR_APP_GROUP"
+                                                   appBundleIdentifier:@"YOUR_APP_BUNDLE_IDENTIFIER"]
+                                                  build];
+    
+    self.service = [Grow didReceive:request forConfiguration:_configuration withContentHandler:contentHandler];
+}
+
+- (void)serviceExtensionTimeWillExpire {
+    [self.service serviceExtensionTimeWillExpire];
+}
+@end
+```
+
 If you need to implement the `didReceive(_:withContentHandler:)` method on your **Notification Service** extension, you must ensure to forward the call before your code.
-
-## Xcode Signing & Capabilities
-
-In order to make the SDK fully functional, it requires the developer to configure capabilities on the application target and as well on the extension target.
-
-#### Push Notifications
-
-This capability needs to be added to the application target. And to add it you need to select your application target and then select the option `Signing & Capabilities`. From there tap on the button `+ Capability`.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/capability_step_1.png">
-
-On the prompt, you search for **Push Notifications** and add this capability.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/push_step_2.png">
-
-The capability should now be on your application target.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/push_step_3.png">
-
-#### Background Modes
-
-In order for the SDK to be able to process and prepare content in the background, it requires background modes to be added as well on the application side. To do this you need to select your application target and then select the option `Signing & Capabilities`. From there tap on the button `+ Capability`. The same way you did before.
-
-Then on the prompt, you search for **Background Modes** and add this capability.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/bkg_step_1.png">
-
-On the Background Modes section of the target, you need to enable `Background fetch`, `Remote notifications`, and `Background processing`.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/bkg_step_2.png">
-
-#### App Group
-
-This capability needs to be added to both targets, application, and extension. To do that you select the target and then select the option `Signing & Capabilities`. From there tap on the button `+ Capability`.  The same way you did before.
-
-Then on the prompt, you search for **App Group** and add this capability.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/app_group_step_2.png">
-
-On the App Group section of the target, you tap on the **[ + ]** to add a new container.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/app_group_step_3.png">
-
-A prompt is displayed and on that, you type the name you want to use. This name will be the one you need to pass on the **configs.appGroup** of the **Grow SDK** configuration object.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/app_group_step_4.png">
-
-If you have auto signing Xcode will update the profiles automatically, if not you need to access the [Apple Certificates](https://developer.apple.com/account/resources/certificates/list) website and update them with this new capability.
-
-The App Group name you type should now be passed from red to black as shown below.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/app_group_step_5.png">
-
-**Now you repeat these steps with the exact same `App Group` name on your Extension target.**
-
-#### Keychain sharing
-
-This capability allows the SDK to share the same **Device Id** across different applications of the same owner. And as well if configured on the application side it is mandatory to be configured as well on the extension side.
-
-To add this capability you select your application target and then select the option `Signing & Capabilities`. From there tap on the button `+ Capability`. The same way you did before.
-
-Then on the prompt, you search for **Keychain sharing** and add this capability.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/keychain_step_2.png">
-
-On the Keychain Sharing section of the target, you tap on the **[ + ]** to add a new container and type the name you want to use. This name will be the one you need to pass on the **configs.keychainGroupName** of the **Grow SDK** configuration object.
-
-<img src="https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/keychain_step_4.png">
-
-**Now you repeat these steps with the exact same `Keychain Group Name` on your Extension target.**
-

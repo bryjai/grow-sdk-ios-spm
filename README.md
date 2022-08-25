@@ -1,4 +1,4 @@
-# Grow SDK for iOS v1.0.2
+# Grow SDK for iOS v1.0.4
 
 ## Requirements
 

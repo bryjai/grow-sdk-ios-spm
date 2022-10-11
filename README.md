@@ -47,6 +47,21 @@ In order to make the SDK fully functional, it requires the developer to configur
 
 To learn more about capabilities please check [Apple documentation](https://developer.apple.com/documentation/xcode/capabilities).
 
+### Enable device registration
+
+```
+Registering devices enables users of the Bryj platform to test their campaigns and check data collection. Unlike Android, you need to declare the URL scheme on your app on iOS to benefit from this feature.
+```
+
+To allow the user to retrieve the device ID to enable Grow debug features, declare a URL Scheme in the info tab of your Xcode project using the bundleId of your app as URL Scheme:
+
+1. Go to the info tab of the project targets.
+2. At the bottom you select the subsection called “URL Types”.
+3. Click the + sign at the bottom.
+4. Add the bundle ID of your app in both identifier and URL Schemes fields.
+
+![URL Scheme](https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/url_scheme.png)
+
 ---
 
 ## Initializing the SDK

@@ -1,4 +1,4 @@
-# Grow SDK for iOS v1.0.4
+# Grow SDK for iOS v1.1.0
 
 ## Requirements
 
@@ -39,7 +39,7 @@ And for the extension make sure `Do Not Embed` is selected for the `GrowSDK.xcfr
 In order to make the SDK fully functional, it requires the developer to configure capabilities on the **Application** target **and** as well on the **Extension** target. The required capabilities are:
 
 - [Push Notifications](https://developer.apple.com/documentation/usernotifications/registering_your_app_with_apns)
-- [Background Modes](https://developer.apple.com/documentation/xcode/configuring-background-execution-modes). Select options **Background fetch**, **Remote notifications**, and **Background processing**.
+- [Background Modes](https://developer.apple.com/documentation/xcode/configuring-background-execution-modes). Select options **Background fetch** and **Remote notifications**.
 - [App Group](https://developer.apple.com/documentation/xcode/configuring-app-groups)
 
 
@@ -122,9 +122,15 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 
 In order to handle Grow Push campaigns, you must add a [**Notification Service** extension](https://developer.apple.com/documentation/usernotifications/modifying_content_in_newly_delivered_notifications) to your app. For this Extension Target make sure you have the `GrowSDK` included on the **Frameworks and Libraries**. If you didn't use `Swift Package Manager` to install the SDK you need to select **Do Not Embed** on that option, since your application already embed it.
 
-From the auto-generated files open the main Notification Service class that extends from `UNNotificationServiceExtension` and find the method `didReceive(_:withContentHandler:)`. Inside this method create a **ExtensionConfigurationBuilder** instance from the GrowSDK framework passing mandatory fields `apiKey`, `appGroup`, and `appBundleIdentifier`. This instance will allow you to generate through the `build()` method the required **ExtensionConfiguration** to be passed in the static method `didReceive(_:forConfiguration:withContentHandler:)` of the main class `Grow`. This static method will return a **GrowNotificationService** object that you will need to save a reference to be able to forward the `serviceExtensionTimeWillExpire()` from Apple in case it times out. 
 
-Your extension class must look like one of the following depending if you choose `Swift` or `Objective-C`:
+Open the auto-generated `NotificationService` class which extends `UNNotificationServiceExtension` and add the following code to it:
+
+1. Declare a new `service` property of type `GrowNotificationService?` which will store the Grow SDK Notification Service instance.
+2. In the method `didReceive(_:withContentHandler:)`, create an `ExtensionConfigurationBuilder` instance by passing your App Group to the constructor, and call its `build()` method to generate an actual `ExtensionConfiguration`.
+3. Then call `Grow.didReceive(_:forConfiguration:withContentHandler:)` to retrieve the Grow SDK Notification Service instance and store it into the `service` property previously created. Make sure to pass to this method the `request` and `contentHandler` arguments from the caller method, as well as the `ExtensionConfiguration` created at step 2.
+4. In the method `serviceExtensionTimeWillExpire()`, Call `service?.serviceExtensionTimeWillExpire()`. 
+
+Your extension class should look like the following:
 
 #### Swift
 ```swift
@@ -137,11 +143,7 @@ class NotificationService: UNNotificationServiceExtension {
     
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         
-        let configuration = Grow.ExtensionConfigurationBuilder(apiKey: "YOUR_API_KEY",
-                                                              appGroup: "YOUR_APP_GROUP",
-                                                   appBundleIdentifier: "YOUR_APP_BUNDLE_IDENTIFIER")
-                                 .build()
-                                 
+        let configuration = Grow.ExtensionConfigurationBuilder(appGroup: "YOUR_APP_GROUP").build()
         service = Grow.didReceive(request, forConfiguration: configuration, withContentHandler: contentHandler)
     }
     
@@ -164,9 +166,7 @@ class NotificationService: UNNotificationServiceExtension {
 - (void)didReceiveNotificationRequest:(UNNotificationRequest *)request withContentHandler:(void (^)(UNNotificationContent * _Nonnull))contentHandler {
 
     id <ExtensionConfiguration> configuration = [[[ExtensionConfigurationBuilder alloc]
-                                                   initWithApiKey:@"YOUR_API_KEY"
-                                                   appGroup:@"YOUR_APP_GROUP"
-                                                   appBundleIdentifier:@"YOUR_APP_BUNDLE_IDENTIFIER"]
+                                                   initWithAppGroup:@"YOUR_APP_GROUP"]
                                                   build];
     
     self.service = [Grow didReceive:request forConfiguration:configuration withContentHandler:contentHandler];

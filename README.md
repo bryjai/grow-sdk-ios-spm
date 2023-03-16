@@ -1,4 +1,4 @@
-# Grow SDK for iOS v1.1.0
+# Grow SDK for iOS v1.1.1
 
 ## Requirements
 
@@ -12,24 +12,40 @@ Requires Xcode 12.5 or above.
 
 This is the recommended way to install our SDK, this allows you to easily upgrade versions.
 
-Add the following package dependency url to your project by following the [Apple documentation](https://developer.apple.com/documentation/swift_packages/adding_package_dependencies_to_your_app):
+1. Add the following package dependency url to your project by following the [Apple documentation](https://developer.apple.com/documentation/swift_packages/adding_package_dependencies_to_your_app):
 
 ```
 https://github.com/bryjai/grow-sdk-ios-spm
 ```
 
+2. Select **Exact Version** as **Dependency Rule** and make sure the last SDK version is displayed:
+
+![Grow SDK iOS SPM](https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/add-grow-sdk-spm.png)
+
+3. Choose your main application target:
+
+![Grow SDK iOS SPM Choose Target](https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/choose-target-for-spm.png)
+
+2. If you use Xcode 13 or lower, in the project settings, add the **GrowSDK** framework into **Frameworks and Libraries** for each application and extension target where you want to use the SDK.
+
+4. If you use Xcode 14, no additional configuration is needed
+
 
 ### Install manually
 
-Having access to the **GrowSDK.xcframework**  you can integrate the SDK manually. To do that you just need to drag and drop this file into your Xcode project. There is no specific place you need to drop, but if you have the Frameworks group you can drop there. When prompted with the `Choose options for adding these files` make sure you mark `Copy items if needed` and select your application and extension targets. If you have several application targets and want to use the SDK on them check those targets as well.
+1. Download the **GrowSDK 1.1.1** framework archive [here](https://s3-eu-west-1.amazonaws.com/bryj-sdks/ios/1.1.0/Grow-SDK-iOS-1.1.1.xcframework.zip)
+
+2. Unzip the downloaded archive
+
+3. Drag and drop the resulting **xcframework** file into your Xcode project. There is no specific place you need to drop it, but if you have the Frameworks group you can drop there. When prompted with the `Choose options for adding these files` make sure to check `Copy items if needed` and select all the applications and extensions targets you want to add the SDK to:
 
 ![Grow SDK iOS manual install 1](https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/manual_step_1.png)
 
-For the application target make sure `Embed & Sign` is selected for the `GrowSDK.xcframework`.
+4. For the application target make sure `Embed & Sign` is selected for the `GrowSDK.xcframework`:
 
 ![Grow SDK iOS manual install 2](https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/manual_step_2.png)
 
-And for the extension make sure `Do Not Embed` is selected for the `GrowSDK.xcframework`.
+5. And for the extension make sure `Do Not Embed` is selected for the `GrowSDK.xcframework`:
 
 ![Grow SDK iOS manual install 3](https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/manual_step_3.png)
 
@@ -61,6 +77,14 @@ To allow the user to retrieve the device ID to enable Grow debug features, decla
 4. Add the bundle ID of your app in both identifier and URL Schemes fields.
 
 ![URL Scheme](https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/url_scheme.png)
+
+### Enable the Grow refresh task
+
+This is important to allow the Grow SDK to execute tasks when the app is in background.
+
+In the **Info.plist** file of your app, add the `ai.bryj.grow.background.refresh` string item to the **Permited background task scheduler identifiers** array (which should be added if not already present in your file):
+
+![Background Tasks Scheduling](https://bryj-sdks.s3.eu-west-1.amazonaws.com/grow/docs/iOS/background-task-scheduler.png)
 
 ---
 
@@ -120,15 +144,20 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 
 ### Initialize on the Notification Service extension
 
-In order to handle Grow Push campaigns, you must add a [**Notification Service** extension](https://developer.apple.com/documentation/usernotifications/modifying_content_in_newly_delivered_notifications) to your app. For this Extension Target make sure you have the `GrowSDK` included on the **Frameworks and Libraries**. If you didn't use `Swift Package Manager` to install the SDK you need to select **Do Not Embed** on that option, since your application already embed it.
+In order to handle Grow Push campaigns, you must add a [**Notification Service** extension](https://developer.apple.com/documentation/usernotifications/modifying_content_in_newly_delivered_notifications) to your app.
 
+If you use SPM in Xcode 13 and lower, or if you added the SDK manually, make sure to  have the `GrowSDK` framework included in the **Frameworks and Libraries** for your Notification Service target, with the **Do Not Embed** option.
 
-Open the auto-generated `NotificationService` class which extends `UNNotificationServiceExtension` and add the following code to it:
+Open your Notification Service class, which extends `UNNotificationServiceExtension`, and add the following code to it:
 
 1. Declare a new `service` property of type `GrowNotificationService?` which will store the Grow SDK Notification Service instance.
-2. In the method `didReceive(_:withContentHandler:)`, create an `ExtensionConfigurationBuilder` instance by passing your App Group to the constructor, and call its `build()` method to generate an actual `ExtensionConfiguration`.
+2. In the method `didReceive(_:withContentHandler:)`, create an `ExtensionConfigurationBuilder` instance by passing your **App Group** and your main **App Bundle Identifier** to the constructor, and call its `build()` method to generate an actual `ExtensionConfiguration`.
 3. Then call `Grow.didReceive(_:forConfiguration:withContentHandler:)` to retrieve the Grow SDK Notification Service instance and store it into the `service` property previously created. Make sure to pass to this method the `request` and `contentHandler` arguments from the caller method, as well as the `ExtensionConfiguration` created at step 2.
-4. In the method `serviceExtensionTimeWillExpire()`, Call `service?.serviceExtensionTimeWillExpire()`. 
+4. In the method `serviceExtensionTimeWillExpire()`, Call `service?.serviceExtensionTimeWillExpire()`.
+
+```
+It's important that you pass your main app target Bundle Identifier to the Grow SDK Notification Service appBundleIdentifier argument on the constructor. This allows Grow SDK to be compatible with projects using the same extension target into several app targets while all are using the same App Group.
+```
 
 Your extension class should look like the following:
 
@@ -143,7 +172,8 @@ class NotificationService: UNNotificationServiceExtension {
     
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         
-        let configuration = Grow.ExtensionConfigurationBuilder(appGroup: "YOUR_APP_GROUP").build()
+        let configuration = Grow.ExtensionConfigurationBuilder(appGroup: "YOUR_APP_GROUP",
+                                                               appBundleIdentifier: "YOUR_MAIN_APP_BUNDLE_IDENTIFIER").build()
         service = Grow.didReceive(request, forConfiguration: configuration, withContentHandler: contentHandler)
     }
     
@@ -166,9 +196,9 @@ class NotificationService: UNNotificationServiceExtension {
 - (void)didReceiveNotificationRequest:(UNNotificationRequest *)request withContentHandler:(void (^)(UNNotificationContent * _Nonnull))contentHandler {
 
     id <ExtensionConfiguration> configuration = [[[ExtensionConfigurationBuilder alloc]
-                                                   initWithAppGroup:@"YOUR_APP_GROUP"]
+                                                   initWithAppGroup:@"YOUR_APP_GROUP"
+                                                   appBundleIdentifier:@"YOUR_MAIN_APP_BUNDLE_IDENTIFIER"]
                                                   build];
-    
     self.service = [Grow didReceive:request forConfiguration:configuration withContentHandler:contentHandler];
 }
 

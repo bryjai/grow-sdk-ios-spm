@@ -16,6 +16,6 @@ let package = Package(
     dependencies: [
     ],
     targets: [
-        .binaryTarget(name: "GrowSDK", url: "https://s3-eu-west-1.amazonaws.com/bryj-sdks/ios/1.1.2/Grow-SDK-iOS-1.1.2.xcframework.zip", checksum: "3dddc292c8d105a603b00fb1a1100608e7f1f0a2e91fa77e9850eec009060ad1")
+        .binaryTarget(name: "GrowSDK", url: "https://s3-eu-west-1.amazonaws.com/bryj-sdks/ios/1.2.0/Grow-SDK-iOS-1.2.0.xcframework.zip", checksum: "d5a45602050b35f2e7ebcd6ac4fda3b5e7ae287661824c21e4fc9df6dd48f0c4")
     ]
 )

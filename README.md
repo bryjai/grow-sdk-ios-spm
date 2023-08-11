@@ -1,4 +1,4 @@
-# Grow SDK for iOS v1.1.2
+# Grow SDK for iOS v1.2.0
 
 ## Requirements
 
@@ -33,7 +33,7 @@ https://github.com/bryjai/grow-sdk-ios-spm
 
 ### Install manually
 
-1. Download the **GrowSDK 1.1.1** framework archive [here](https://s3-eu-west-1.amazonaws.com/bryj-sdks/ios/1.1.2/Grow-SDK-iOS-1.1.2.xcframework.zip)
+1. Download the **GrowSDK 1.2.0** framework archive [here](https://s3-eu-west-1.amazonaws.com/bryj-sdks/ios/1.2.0/Grow-SDK-iOS-1.2.0.xcframework.zip)
 
 2. Unzip the downloaded archive
 

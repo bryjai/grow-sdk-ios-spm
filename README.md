@@ -1,4 +1,4 @@
-# Grow SDK for iOS v1.2.0
+# Grow SDK for iOS v1.2.1
 
 ## Requirements
 
@@ -33,7 +33,7 @@ https://github.com/bryjai/grow-sdk-ios-spm
 
 ### Install manually
 
-1. Download the **GrowSDK 1.2.0** framework archive [here](https://s3-eu-west-1.amazonaws.com/bryj-sdks/ios/1.2.0/Grow-SDK-iOS-1.2.0.xcframework.zip)
+1. Download the **GrowSDK 1.2.1** framework archive [here](https://s3-eu-west-1.amazonaws.com/bryj-sdks/ios/1.2.1/Grow-SDK-iOS-1.2.1.xcframework.zip)
 
 2. Unzip the downloaded archive
 
@@ -156,7 +156,7 @@ Open your Notification Service class, which extends `UNNotificationServiceExtens
 4. In the method `serviceExtensionTimeWillExpire()`, Call `service?.serviceExtensionTimeWillExpire()`.
 
 ```
-It's important that you pass your main app target Bundle Identifier to the Grow SDK Notification Service appBundleIdentifier argument on the constructor. This allows Grow SDK to be compatible with projects using the same extension target into several app targets while all are using the same App Group.
+It's important that you pass your main app target Bundle Identifier to the extension configuration builder's appBundleIdentifier argument on the constructor. This allows Grow SDK to be compatible with projects using the same extension target into several app targets while all are using the same App Group.
 ```
 
 Your extension class should look like the following:

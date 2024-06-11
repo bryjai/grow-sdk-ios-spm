@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "GrowSDK",
     platforms: [
-        .iOS(.v11)
+        .iOS(.v14)
     ],
     products: [
         .library(
@@ -16,6 +16,6 @@ let package = Package(
     dependencies: [
     ],
     targets: [
-        .binaryTarget(name: "GrowSDK", url: "https://s3-eu-west-1.amazonaws.com/bryj-sdks/ios/1.2.3/Grow-SDK-iOS-1.2.3.xcframework.zip", checksum: "55b9995cc71707faf7966beaa6cec83eea1233cf6390d8166387cc66c6e355f7")
+        .binaryTarget(name: "GrowSDK", url: "https://s3-eu-west-1.amazonaws.com/bryj-sdks/ios/1.2.4/Grow-SDK-iOS-1.2.4.xcframework.zip", checksum: "35b7443a9a387d8b76f2f3015790927be2303129a7891db324ee4e7b64f90a05")
     ]
 )
